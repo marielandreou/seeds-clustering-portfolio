@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seeds Clustering Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+html, body { margin: 0; }
+/* Layout: a lab specimen sheet. A narrow rail of section labels on the left, one reading column,
+   results shown as numbered figure plates and data tables. */
+:root {
+  --bg: #f4f5f1;
+  --surface: #ffffff;
+  --ink: #18201c;
+  --muted: #59635d;
+  --line: #d7dbd2;
+  --accent: #34557c;
+  --accent-soft: #e3e9f1;
+  --on-accent: #ffffff;
+  --kernel: #dcb46a;
+  --kama: #23897d;
+  --rosa: #b88a1e;
+  --canadian: #74579f;
+  --plate: #ffffff;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #181e1b; --ink: #e6ebe5; --muted: #9ba69f; --line: #2c3530;
+    --accent: #93b2d8; --accent-soft: #1f2a36; --on-accent: #0e141b; --kernel: #a8863f;
+    --kama: #4fc0b2; --rosa: #e2bb59; --canadian: #a98fd4; --plate: #f7f8f5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #181e1b; --ink: #e6ebe5; --muted: #9ba69f; --line: #2c3530;
+  --accent: #93b2d8; --accent-soft: #1f2a36; --on-accent: #0e141b; --kernel: #a8863f;
+  --kama: #4fc0b2; --rosa: #e2bb59; --canadian: #a98fd4; --plate: #f7f8f5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.6;
+  padding-inline: 20px; padding-block: 0 64px;
+}
+.wrap { max-width: 1080px; margin-inline: auto; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+.num, td, th, .data { font-variant-numeric: tabular-nums; }
+
+/* masthead */
+.masthead { display: grid; gap: 28px; padding-block: 56px 40px; border-bottom: 1px solid var(--line); }
+.eyebrow { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.masthead h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); font-weight: 780; font-stretch: 78%; line-height: 1.02; max-width: 17ch; }
+.dek { max-width: 62ch; font-size: 1.15rem; color: var(--ink); }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; text-decoration: none;
+  padding: 9px 16px; border-radius: 4px; border: 1px solid var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn:hover { background: var(--accent-soft); }
+.btn.primary:hover { background: var(--accent); filter: brightness(1.08); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.specimen { font-family: var(--font-data); font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+/* key numbers */
+.keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.key { padding: 22px 18px 22px 0; display: grid; gap: 4px; align-content: start; }
+.key + .key { padding-left: 18px; border-left: 1px solid var(--line); }
+.key .v { font-family: var(--font-display); font-weight: 760; font-stretch: 80%; font-size: clamp(2rem, 4.5vw, 2.9rem); line-height: 1; color: var(--accent); }
+.key .l { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; }
+.key .s { font-size: 0.88rem; color: var(--muted); line-height: 1.4; }
+.answer { padding-block: 22px; border-bottom: 1px solid var(--line); font-size: 1.15rem; max-width: 70ch; }
+
+/* sections */
+section { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 32px; padding-block: 44px; border-bottom: 1px solid var(--line); }
+.rail { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 6px; }
+.body { display: grid; gap: 18px; min-width: 0; }
+.body > p, .body > ul, .body > ol { max-width: 68ch; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 720; font-stretch: 85%; line-height: 1.15; }
+h3 { font-size: 1.15rem; font-weight: 680; font-stretch: 90%; margin-top: 14px; }
+ul, ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.muted { color: var(--muted); }
+strong { font-weight: 600; }
+
+/* kernel diagram + feature table */
+.data-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.kernel svg { width: 100%; height: auto; display: block; }
+.kernel figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-display); font-weight: 650; font-size: 0.82rem; letter-spacing: 0.02em; color: var(--muted); }
+td.n, th.n { text-align: right; font-family: var(--font-data); font-size: 0.86rem; }
+code, .mono { font-family: var(--font-data); font-size: 0.86em; }
+tr.pick td { background: var(--accent-soft); font-weight: 600; }
+
+/* variety chips */
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+.chip::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.kama { --c: var(--kama); } .rosa { --c: var(--rosa); } .canadian { --c: var(--canadian); }
+
+/* method steps: a real sequence */
+.steps { list-style: none; padding: 0; counter-reset: step; display: grid; gap: 14px; max-width: 70ch; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 10px; }
+.steps li::before { content: counter(step); font-family: var(--font-data); font-size: 0.85rem; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 50%; width: 1.9em; height: 1.9em; display: grid; place-items: center; margin-top: 2px; }
+.ext { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 1px 5px; margin-left: 4px; vertical-align: 2px; }
+
+/* figure plates */
+.plate { margin: 0; background: var(--plate); border: 1px solid var(--line); border-radius: 4px; padding: 14px; display: grid; gap: 10px; }
+.plate img { width: 100%; height: auto; display: block; }
+.plate figcaption { font-size: 0.86rem; color: #47514b; line-height: 1.45; }
+.plate figcaption b { font-family: var(--font-data); font-weight: 500; color: #34557c; margin-right: 6px; }
+.plate.narrow { max-width: 460px; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+
+/* cross-tab heat table */
+.xtab { border-collapse: separate; border-spacing: 4px; width: auto; }
+.xtab th, .xtab td { border: 0; text-align: center; }
+.xtab td.cell { width: 74px; height: 56px; font-family: var(--font-data); font-size: 1.05rem; border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) calc(var(--p) * 1%), var(--surface)); }
+.xtab td.hi { color: var(--on-accent); font-weight: 500; }
+.xtab th.row { text-align: right; font-family: var(--font-data); font-weight: 400; color: var(--muted); padding-right: 8px; }
+
+/* recall / precision bars */
+.bars { display: grid; gap: 12px; max-width: 560px; }
+.bar-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }
+.bar-pair { display: grid; gap: 4px; }
+.bar { position: relative; height: 18px; background: var(--accent-soft); border-radius: 2px; }
+.bar span { position: absolute; inset: 0 auto 0 0; width: calc(var(--w) * 1%); background: var(--c); border-radius: 2px; }
+.bar em { position: absolute; right: 6px; top: 0; font-style: normal; font-family: var(--font-data); font-size: 0.75rem; line-height: 18px; color: var(--ink); }
+.legend { font-size: 0.85rem; color: var(--muted); }
+
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; max-width: 68ch; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.three > div { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.three h3 { margin-top: 0; }
+.three ul { font-size: 0.97rem; }
+.files li { font-size: 0.97rem; }
+pre { margin: 0; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-family: var(--font-data); font-size: 0.85rem; line-height: 1.5; }
+.refs { font-size: 0.92rem; color: var(--muted); }
+footer { padding-top: 28px; font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); }
+
+@media (max-width: 860px) {
+  section { grid-template-columns: minmax(0, 1fr); gap: 14px; padding-block: 34px; }
+  .data-grid, .pair, .three { grid-template-columns: minmax(0, 1fr); }
+  .keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .key:nth-child(3) { padding-left: 0; border-left: 0; }
+  .key:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 420px) {
+  body { padding-inline: 16px; }
+  .xtab td.cell { width: 58px; height: 46px; font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: background-color .15s ease, filter .15s ease; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Machine Learning with Python · Final project, Option 3 · Unsupervised learning</div>
+    <h1>How much structure can clustering find without labels?</h1>
+    <p class="dek">An agricultural co-op receives unlabelled deliveries of mixed wheat. I hid the variety of 210 kernels and asked how many varieties K-Means could find from seven X-ray measurements, and how cleanly it could separate them. The labels came back only at the end, as an answer key.</p>
+    <div class="links">
+      <a class="btn primary" href="report/Final_Project_Option3_Seeds_Clustering.html" target="_blank" rel="noopener">Open the full notebook</a>
+      <a class="btn" href="report/Final_Project_Option3_Seeds_Clustering.pdf" target="_blank" rel="noopener">PDF report</a>
+    </div>
+    <div class="specimen"><span>By Andreou Maria-Gavriela</span><span>UCI Seeds data</span><span>n = 210 kernels</span><span>7 features</span><span>3 varieties × 70</span><span>K-Means, k = 3</span><span>random_state = 42</span></div>
+  </header>
+
+  <div class="keys" aria-label="Key results">
+    <div class="key"><span class="v num">k = 3</span><span class="l">Groups found</span><span class="s">Elbow and gap statistic; silhouette preferred 2</span></div>
+    <div class="key"><span class="v num">0.919</span><span class="l">Purity</span><span class="s">193 of 210 kernels sit in a cluster led by their own variety</span></div>
+    <div class="key"><span class="v num">0.773</span><span class="l">Adjusted Rand index</span><span class="s">0 is chance level, 1 is a perfect match</span></div>
+    <div class="key"><span class="v num">0.728</span><span class="l">Normalised mutual information</span><span class="s">How much the cluster tells you about the variety</span></div>
+  </div>
+  <p class="answer"><strong>Short answer:</strong> most of it. Three groups emerge without any labels and match the real varieties for about 11 kernels in 12. The boundaries are soft: every misplaced kernel involves Kama, the variety that sits between the other two.</p>
+
+  <section id="problem">
+    <div class="rail">Problem</div>
+    <div class="body">
+      <h2>The co-op's question</h2>
+      <p>Before paying for a sorting process, the co-op wants to know how many wheat varieties are plausibly mixed in a delivery, and whether a few cheap measurements are enough to tell them apart. The deliveries carry no labels, so this is a clustering problem: find the groups first, then judge how real they are.</p>
+      <p class="callout"><strong>Central question.</strong> How much of the real class structure can clustering recover without ever using the labels?</p>
+    </div>
+  </section>
+
+  <section id="data">
+    <div class="rail">Data</div>
+    <div class="body">
+      <h2>210 kernels, seven measurements</h2>
+      <p>The Seeds data set (UCI Machine Learning Repository, Charytanowicz et al., 2010) holds 70 kernels each of <span class="chip kama">Kama</span>, <span class="chip rosa">Rosa</span> and <span class="chip canadian">Canadian</span> wheat, grown on experimental fields at the Institute of Agrophysics in Lublin. Each kernel was imaged with soft X-rays and measured from the image. There are no missing values.</p>
+      <div class="data-grid">
+        <figure class="kernel" style="margin:0">
+          <svg viewBox="0 0 320 190" role="img" aria-label="Schematic wheat kernel showing length, width and groove">
+            <path d="M40 92 C40 46 116 36 164 38 C226 41 264 62 264 92 C264 124 222 142 160 143 C100 144 40 134 40 92 Z" fill="var(--kernel)" stroke="var(--ink)" stroke-width="1.5"/>
+            <path d="M62 94 C112 84 198 84 244 92" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <text x="150" y="80" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)" text-anchor="middle">groove</text>
+            <line x1="40" y1="165" x2="264" y2="165" stroke="var(--muted)" stroke-width="1"/>
+            <line x1="40" y1="159" x2="40" y2="171" stroke="var(--muted)" stroke-width="1"/>
+            <line x1="264" y1="159" x2="264" y2="171" stroke="var(--muted)" stroke-width="1"/>
+            <text x="152" y="183" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)" text-anchor="middle">kernel length</text>
+            <line x1="290" y1="38" x2="290" y2="143" stroke="var(--muted)" stroke-width="1"/>
+            <line x1="284" y1="38" x2="296" y2="38" stroke="var(--muted)" stroke-width="1"/>
+            <line x1="284" y1="143" x2="296" y2="143" stroke="var(--muted)" stroke-width="1"/>
+            <text x="305" y="95" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)" text-anchor="middle" transform="rotate(90 305 95)">width</text>
+          </svg>
+          <figcaption>Schematic kernel. Area and perimeter come from the outline; compactness is 4πA/P².</figcaption>
+        </figure>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Feature</th><th>What it measures</th><th class="n">Range</th></tr></thead>
+            <tbody>
+              <tr><td><code>area</code></td><td>Size of the outline</td><td class="n">10.6–21.2</td></tr>
+              <tr><td><code>perimeter</code></td><td>Length of the outline</td><td class="n">12.4–17.3</td></tr>
+              <tr><td><code>compactness</code></td><td>How close the outline is to a circle</td><td class="n">0.808–0.918</td></tr>
+              <tr><td><code>kernel_length</code></td><td>Long axis</td><td class="n">4.90–6.68</td></tr>
+              <tr><td><code>kernel_width</code></td><td>Short axis</td><td class="n">2.63–4.03</td></tr>
+              <tr><td><code>asymmetry</code></td><td>Asymmetry coefficient</td><td class="n">0.77–8.46</td></tr>
+              <tr><td><code>groove_length</code></td><td>Length of the groove</td><td class="n">4.52–6.55</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="rail">Method</div>
+    <div class="body">
+      <h2>Workflow</h2>
+      <ol class="steps">
+        <li><div><strong>Scale.</strong> <code>StandardScaler</code> puts every feature on the same footing, so area (around 15) cannot outweigh compactness (around 0.87) in the distances.</div></li>
+        <li><div><strong>Look, without labels.</strong> PCA to two components keeps 89% of the variance: PC1 (72%) is kernel size, PC2 (17%) is shape, asymmetry against compactness.</div></li>
+        <li><div><strong>Choose k, without labels.</strong> K-Means for k = 2 to 7, judged by the elbow and the silhouette, plus the gap statistic and bootstrap stability<span class="ext">extension</span>.</div></li>
+        <li><div><strong>Fit.</strong> K-Means with k = 3, <code>n_init=10</code>, <code>random_state=42</code>, on all seven scaled features.</div></li>
+        <li><div><strong>Reveal and validate.</strong> Cross-tabulation and purity, then per-variety recall and precision, ARI and NMI, and a look at each misplaced kernel<span class="ext">extension</span>.</div></li>
+        <li><div><strong>Interpret and stress-test.</strong> Cluster profiles in real units, then the same task with Ward clustering, a Gaussian mixture and 25 random seeds<span class="ext">extension</span>.</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="choose-k">
+    <div class="rail">Result 1</div>
+    <div class="body">
+      <h2>The diagnostics disagree, so I added two more</h2>
+      <p>The elbow bends sharply at k = 3, but the silhouette is highest at k = 2. At k = 2, K-Means only cuts the data into a group of 133 and a group of 77, merging two neighbouring groups. The gap statistic selects 3, and bootstrap refits show three clusters are about as reproducible as two, while four or more fall apart. I chose <strong>k = 3</strong> before looking at any label.</p>
+      <div class="tbl">
+        <table>
+          <thead><tr><th class="n">k</th><th class="n">Inertia</th><th class="n">Drop from k−1</th><th class="n">Silhouette</th><th class="n">Gap</th><th class="n">Bootstrap ARI, mean</th><th class="n">Bootstrap ARI, 5th pct</th></tr></thead>
+          <tbody>
+            <tr><td class="n">2</td><td class="n">659.2</td><td class="n">–</td><td class="n"><strong>0.466</strong></td><td class="n">0.575</td><td class="n">0.920</td><td class="n">0.774</td></tr>
+            <tr class="pick"><td class="n">3</td><td class="n">430.7</td><td class="n">228.5</td><td class="n">0.401</td><td class="n">0.779</td><td class="n">0.879</td><td class="n">0.800</td></tr>
+            <tr><td class="n">4</td><td class="n">371.3</td><td class="n">59.4</td><td class="n">0.328</td><td class="n">0.759</td><td class="n">0.745</td><td class="n">0.518</td></tr>
+            <tr><td class="n">5</td><td class="n">326.5</td><td class="n">44.8</td><td class="n">0.285</td><td class="n">0.751</td><td class="n">0.663</td><td class="n">0.461</td></tr>
+            <tr><td class="n">6</td><td class="n">289.8</td><td class="n">36.7</td><td class="n">0.280</td><td class="n">0.735</td><td class="n">0.673</td><td class="n">0.481</td></tr>
+            <tr><td class="n">7</td><td class="n">263.0</td><td class="n">26.8</td><td class="n">0.271</td><td class="n">0.702</td><td class="n">0.611</td><td class="n">0.435</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="plate">
+        <img src="figures/02_elbow_silhouette.png" alt="Elbow chart with a sharp bend at k equals 3, and silhouette chart highest at k equals 2">
+        <figcaption><b>Fig. 1</b>The two course diagnostics. Inertia falls by 229 from k = 2 to 3, then by only 59. The silhouette peaks at k = 2 (0.466), with k = 3 second (0.401).</figcaption>
+      </figure>
+      <figure class="plate">
+        <img src="figures/06_gap_stability.png" alt="Gap statistic peaking at k equals 3, and bootstrap stability boxplots that drop from k equals 4">
+        <figcaption><b>Fig. 2</b>Two label-free tie-breakers. Left: the gap statistic, whose one-standard-error rule picks k = 3. Right: agreement between the full-data clustering and 50 bootstrap refits.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="agreement">
+    <div class="rail">Result 2</div>
+    <div class="body">
+      <h2>Each cluster is led by one variety</h2>
+      <p>Revealing the labels only now, the cross-tabulation shows a strong diagonal. Purity is 193 of 210 kernels, or 0.919. Rosa and Canadian are never mixed with each other; every one of the 17 mismatches involves Kama.</p>
+      <div class="pair">
+        <div class="tbl">
+          <table class="xtab" aria-label="Clusters against true varieties">
+            <thead><tr><th></th><th><span class="chip kama">Kama</span></th><th><span class="chip rosa">Rosa</span></th><th><span class="chip canadian">Canadian</span></th></tr></thead>
+            <tbody>
+              <tr><th class="row">cluster 0</th><td class="cell" style="--p:9">6</td><td class="cell" style="--p:0">0</td><td class="cell hi" style="--p:100">66</td></tr>
+              <tr><th class="row">cluster 1</th><td class="cell" style="--p:3">2</td><td class="cell hi" style="--p:98">65</td><td class="cell" style="--p:0">0</td></tr>
+              <tr><th class="row">cluster 2</th><td class="cell hi" style="--p:94">62</td><td class="cell" style="--p:8">5</td><td class="cell" style="--p:6">4</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bars" aria-label="Recall and precision per variety">
+          <div class="bar-row"><span class="chip rosa">Rosa</span><div class="bar-pair rosa"><div class="bar"><span style="--w:92.9"></span><em>recall 0.929</em></div><div class="bar"><span style="--w:97.0"></span><em>precision 0.970</em></div></div></div>
+          <div class="bar-row"><span class="chip canadian">Canadian</span><div class="bar-pair canadian"><div class="bar"><span style="--w:94.3"></span><em>recall 0.943</em></div><div class="bar"><span style="--w:91.7"></span><em>precision 0.917</em></div></div></div>
+          <div class="bar-row"><span class="chip kama">Kama</span><div class="bar-pair kama"><div class="bar"><span style="--w:88.6"></span><em>recall 0.886</em></div><div class="bar"><span style="--w:87.3"></span><em>precision 0.873</em></div></div></div>
+          <p class="legend">Recall: share of the variety found in its matching cluster. Precision: share of that cluster that is the variety.</p>
+        </div>
+      </div>
+      <p>The hardest pair to tell apart is <strong>Kama and Canadian</strong>, with 10 kernels swapped between them, followed by Kama and Rosa with 7. Chance-corrected scores confirm the agreement is far above chance: ARI 0.773 and NMI 0.728.</p>
+      <figure class="plate narrow">
+        <img src="figures/04_pca_true_varieties.png" alt="PCA scatter coloured by true variety: Canadian on the left, Kama in the middle, Rosa on the right">
+        <figcaption><b>Fig. 3</b>The PCA view from the start, now coloured by the true variety. Size runs left to right: Canadian, then Kama, then Rosa, with Kama overlapping both neighbours.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="errors">
+    <div class="rail">Result 3</div>
+    <div class="body">
+      <h2>The misplaced kernels sit on the borders</h2>
+      <p>For each kernel I measured its margin: how much closer its nearest cluster centre is than the second nearest. The 17 mismatched kernels have a median margin of 0.41, against 1.94 for the rest, and 11 of them are among the 15% of kernels with the smallest margins. Small or asymmetric Kama kernels drift to Canadian; large ones to Rosa.</p>
+      <figure class="plate">
+        <img src="figures/08_clusters_vs_truth.png" alt="Side-by-side PCA scatters of clusters and true varieties with the 17 mismatched kernels circled in red">
+        <figcaption><b>Fig. 4</b>Left: clusters, named after their majority variety. Right: true varieties. Red rings mark the 17 kernels where the two disagree.</figcaption>
+      </figure>
+      <p>A practical rule follows for the co-op: accept confident assignments and send low-margin kernels for a manual check.</p>
+    </div>
+  </section>
+
+  <section id="profiles">
+    <div class="rail">Result 4</div>
+    <div class="body">
+      <h2>What each cluster describes</h2>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Cluster</th><th>Majority</th><th>Typical kernel</th><th class="n">Area</th><th class="n">Compactness</th><th class="n">Asymmetry</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td><span class="chip rosa">Rosa</span></td><td>Large: 1.2 to 1.3 SD above average on every size measure</td><td class="n">18.50</td><td class="n">0.884</td><td class="n">3.63</td></tr>
+            <tr><td class="mono">2</td><td><span class="chip kama">Kama</span></td><td>Medium, compact, low asymmetry, short groove</td><td class="n">14.44</td><td class="n">0.882</td><td class="n">2.71</td></tr>
+            <tr><td class="mono">0</td><td><span class="chip canadian">Canadian</span></td><td>Small, narrow, least compact, most asymmetric</td><td class="n">11.86</td><td class="n">0.848</td><td class="n">4.74</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="plate">
+        <img src="figures/09_cluster_profiles.png" alt="Heatmap of cluster centres in standard deviations from the average kernel">
+        <figcaption><b>Fig. 5</b>Cluster centres in standard deviations from the average kernel. The centres land almost on the true variety means: area 11.86 against 11.87 for Canadian, 14.44 against 14.33 for Kama, 18.50 against 18.33 for Rosa.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="real">
+    <div class="rail">Result 5</div>
+    <div class="body">
+      <h2>Is the structure real?</h2>
+      <p>Two more checks point the same way. Other algorithms with different assumptions find much the same three groups, and K-Means returns the identical partition from 25 different random seeds (ARI 1.000 with my clustering every time).</p>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Method, k = 3</th><th class="n">Purity</th><th class="n">ARI vs varieties</th><th class="n">ARI vs my K-Means</th></tr></thead>
+          <tbody>
+            <tr><td>K-Means (used in the project)</td><td class="n">0.919</td><td class="n">0.773</td><td class="n">1.000</td></tr>
+            <tr><td>Agglomerative, Ward linkage</td><td class="n">0.929</td><td class="n">0.797</td><td class="n">0.836</td></tr>
+            <tr><td>Gaussian mixture, full covariance</td><td class="n">0.895</td><td class="n">0.723</td><td class="n">0.777</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Purity on its own would mislead. It rises towards 1.0 as the kernels are cut into more and more clusters, reaching 1.000 at one kernel per cluster, while ARI peaks at k = 3 and falls to zero.</p>
+      <figure class="plate">
+        <img src="figures/07_purity_vs_k.png" alt="Purity rising towards 1 as k grows to 210 while ARI peaks at k equals 3 and falls to 0">
+        <figcaption><b>Fig. 6</b>Purity, ARI and NMI against the number of clusters, from 2 up to 210. The ARI peak at k = 3 is a check after the fact; k was chosen before the labels were seen.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="interpretation">
+    <div class="rail">Interpretation</div>
+    <div class="body">
+      <h2>What the results mean</h2>
+      <p>Without labels, K-Means recovered most of the variety structure: three groups with clear physical meaning, matching the real varieties for about 92% of kernels. Rosa stands out mainly by size. Kama and Canadian differ in shape, through compactness and asymmetry, as much as in size.</p>
+      <ul>
+        <li><strong>The choice of k was a judgement.</strong> The elbow said 3 and the silhouette said 2. Purity only means something together with that choice.</li>
+        <li><strong>The PCA plots are illustrations.</strong> They show 89% of the variance, while the clustering worked in all seven dimensions. Points that overlap in the plot can be apart in the hidden dimensions.</li>
+        <li><strong>One study, one set of fields.</strong> A new harvest or another variety mix could move the boundaries or add groups.</li>
+      </ul>
+      <p class="callout"><strong>Ethics.</strong> K-Means always returns k groups, real or not. Treating these clusters as definite varieties would mislabel about 8% of kernels, and every error involves Kama, so decisions built on them would be less reliable for one variety. A fair claim is that the measurements are consistent with about three varieties, separable for roughly 11 kernels in 12, to be confirmed on a labelled sample.</p>
+    </div>
+  </section>
+
+  <section id="reflection">
+    <div class="rail">Reflection</div>
+    <div class="body">
+      <h2>Looking back</h2>
+      <div class="three">
+        <div>
+          <h3>Worked well</h3>
+          <ul>
+            <li>Keeping the labels hidden until the end kept the evaluation honest.</li>
+            <li>Several label-free diagnostics turned a disagreement into a reasoned choice.</li>
+            <li>Profiles in real units and z-scores gave each cluster a clear physical meaning.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Was difficult</h3>
+          <ul>
+            <li>There is no single correct k, and the standard tools disagreed.</li>
+            <li>The 2-D PCA plot is persuasive but hides 11% of the variation.</li>
+            <li>Purity flatters larger k, so it needed ARI and NMI beside it.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Would improve</h3>
+          <ul>
+            <li>Cluster on decorrelated features, since five of seven mostly encode size.</li>
+            <li>Use a Gaussian mixture's probabilities to flag uncertain kernels.</li>
+            <li>Test the groups on kernels from other harvests and fields.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="files">
+    <div class="rail">Files</div>
+    <div class="body">
+      <h2>Notebook and reproducibility</h2>
+      <ul class="files">
+        <li><a href="report/Final_Project_Option3_Seeds_Clustering.html" target="_blank" rel="noopener">Completed notebook (HTML)</a>, every cell run, with all outputs and written answers.</li>
+        <li><a href="report/Final_Project_Option3_Seeds_Clustering.pdf" target="_blank" rel="noopener">PDF report</a>, the same notebook as an A4 document.</li>
+        <li><code>Final_Project_Option3_Seeds_Clustering.ipynb</code>, <code>README.md</code>, <code>data/seeds.csv</code> and <code>figures/</code> in the project repository.</li>
+      </ul>
+      <pre>pip install -r requirements.txt
+jupyter notebook Final_Project_Option3_Seeds_Clustering.ipynb   # Run All, about 20 s</pre>
+      <p class="muted">Every random step uses <code>random_state=42</code>, so a fresh run reproduces every number on this page. Last run with Python 3.13, scikit-learn 1.9, pandas 3.0 and NumPy 2.5.</p>
+      <p class="refs">Charytanowicz, M. et al. (2010). Complete gradient clustering algorithm for features analysis of X-ray images. <em>Information Technologies in Biomedicine</em>. Seeds data set, UCI Machine Learning Repository, <a href="https://doi.org/10.24432/C5H30K" target="_blank" rel="noopener">doi:10.24432/C5H30K</a>. Tibshirani, R., Walther, G. &amp; Hastie, T. (2001). Estimating the number of clusters in a data set via the gap statistic. <em>JRSS B</em>, 63(2), 411–423.</p>
+    </div>
+  </section>
+
+  <footer>Andreou Maria-Gavriela · Final project, Option 3 · Machine Learning with Python</footer>
+</div>
+</body>
+</html>
