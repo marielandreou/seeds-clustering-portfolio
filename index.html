@@ -185,7 +185,7 @@ footer { padding-top: 28px; font-family: var(--font-data); font-size: 0.78rem; c
     <div class="key"><span class="v num">0.773</span><span class="l">Adjusted Rand index</span><span class="s">0 is chance level, 1 is a perfect match</span></div>
     <div class="key"><span class="v num">0.728</span><span class="l">Normalised mutual information</span><span class="s">How much the cluster tells you about the variety</span></div>
   </div>
-  <p class="answer"><strong>Short answer:</strong> most of it. Three groups emerge without any labels and match the real varieties for about 11 kernels in 12. The boundaries are soft: every misplaced kernel involves Kama, the variety that sits between the other two.</p>
+  <p class="answer"><strong>Short answer:</strong> most of it. Three groups emerge without any labels and match the real varieties for about 11 kernels in 12, close to the 96% that a supervised model reaches when it is given the labels. The boundaries are soft: every misplaced kernel involves Kama, the variety that sits between the other two.</p>
 
   <section id="problem">
     <div class="rail">Problem</div>
@@ -368,11 +368,45 @@ footer { padding-top: 28px; font-family: var(--font-data); font-size: 0.78rem; c
     </div>
   </section>
 
+  <section id="ceiling">
+    <div class="rail">Result 6</div>
+    <div class="body">
+      <h2>How close is this to the best possible?</h2>
+      <p>A perfect score may not be reachable with seven measurements. To find the realistic maximum, I trained two supervised models that are allowed to see the labels and scored them on kernels they had not seen, with 10-fold cross-validation.</p>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Model</th><th class="n">Share of kernels correct</th></tr></thead>
+          <tbody>
+            <tr><td>Linear discriminant analysis (sees the labels)</td><td class="n">0.962 ± 0.036</td></tr>
+            <tr><td>Logistic regression (sees the labels)</td><td class="n">0.933 ± 0.053</td></tr>
+            <tr class="pick"><td>K-Means, k = 3 (never sees the labels)</td><td class="n">0.919</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Even with the answers, the best model misses about 4% of kernels. Clustering, with no labels at all, lands only about 4 percentage points below it.</p>
+      <h3>An idea I tested and rejected</h3>
+      <p>Because five of the seven measurements mostly repeat size information, I tried clustering on decorrelated ("whitened") principal components. The first three columns use no labels, so they are what I could have used to decide.</p>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Feature space</th><th class="n">Silhouette, k = 3</th><th class="n">Best k</th><th class="n">Lowest seed ARI</th><th class="n">Purity</th><th class="n">ARI vs varieties</th></tr></thead>
+          <tbody>
+            <tr class="pick"><td>7 scaled features (main analysis)</td><td class="n">0.401</td><td class="n">2</td><td class="n">1.000</td><td class="n">0.919</td><td class="n">0.773</td></tr>
+            <tr><td>3 whitened components</td><td class="n">0.326</td><td class="n">3</td><td class="n">1.000</td><td class="n">0.890</td><td class="n">0.708</td></tr>
+            <tr><td>4 whitened components</td><td class="n">0.270</td><td class="n">3</td><td class="n">0.931</td><td class="n">0.957</td><td class="n">0.876</td></tr>
+            <tr><td>5 whitened components</td><td class="n">0.229</td><td class="n">6</td><td class="n">0.944</td><td class="n">0.952</td><td class="n">0.865</td></tr>
+            <tr><td>7 whitened components</td><td class="n">0.164</td><td class="n">5</td><td class="n">0.583</td><td class="n">0.957</td><td class="n">0.876</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Purity rises to 0.957 on paper, but nothing without labels points to those versions. The most convincing one by the label-free columns has 3 components, and it scores worse (0.890). With all 7 components the result also changes with the random start. Choosing by purity would mean tuning the method to the hidden labels, so I kept my original analysis.</p>
+    </div>
+  </section>
+
   <section id="interpretation">
     <div class="rail">Interpretation</div>
     <div class="body">
       <h2>What the results mean</h2>
-      <p>Without labels, K-Means recovered most of the variety structure: three groups with clear physical meaning, matching the real varieties for about 92% of kernels. Rosa stands out mainly by size. Kama and Canadian differ in shape, through compactness and asymmetry, as much as in size.</p>
+      <p>Without labels, K-Means recovered most of the variety structure: three groups with clear physical meaning, matching the real varieties for about 92% of kernels, close to the 96% a supervised model reaches with the labels. Rosa stands out mainly by size. Kama and Canadian differ in shape, through compactness and asymmetry, as much as in size.</p>
       <ul>
         <li><strong>The choice of k was a judgement.</strong> The elbow said 3 and the silhouette said 2. Purity only means something together with that choice.</li>
         <li><strong>The PCA plots are illustrations.</strong> They show 89% of the variance, while the clustering worked in all seven dimensions. Points that overlap in the plot can be apart in the hidden dimensions.</li>
@@ -401,12 +435,13 @@ footer { padding-top: 28px; font-family: var(--font-data); font-size: 0.78rem; c
             <li>There is no single correct k, and the standard tools disagreed.</li>
             <li>The 2-D PCA plot is persuasive but hides 11% of the variation.</li>
             <li>Purity flatters larger k, so it needed ARI and NMI beside it.</li>
+            <li>Whitened features scored higher, but only in versions I could have picked by peeking at the labels.</li>
           </ul>
         </div>
         <div>
           <h3>Would improve</h3>
           <ul>
-            <li>Cluster on decorrelated features, since five of seven mostly encode size.</li>
+            <li>Find a label-free way to choose the feature space, or use a small labelled sample to choose it fairly.</li>
             <li>Use a Gaussian mixture's probabilities to flag uncertain kernels.</li>
             <li>Test the groups on kernels from other harvests and fields.</li>
           </ul>

@@ -5,7 +5,7 @@ Author: **Andreou Maria-Gavriela**
 
 I took 210 wheat kernels, hid their variety labels, and asked how much of the real grouping K-Means clustering could recover from seven simple measurements. I only brought the labels back at the very end, as an answer key.
 
-**Main result:** the data support **three groups**. **193 of the 210 kernels (purity 0.919)** fall in a cluster dominated by their own variety. The chance-corrected scores agree: **ARI 0.773** and **NMI 0.728**. The structure is real, but its boundaries are soft. Every one of the 17 misplaced kernels involves the middle-sized variety, Kama.
+**Main result:** the data support **three groups**. **193 of the 210 kernels (purity 0.919)** fall in a cluster dominated by their own variety. The chance-corrected scores agree: **ARI 0.773** and **NMI 0.728**. For comparison, a supervised model that is *allowed* to see the labels gets **96.2%** of unseen kernels right, so clustering recovered most of what these measurements can separate at all. The structure is real, but its boundaries are soft. Every one of the 17 misplaced kernels involves the middle-sized variety, Kama.
 
 | File | What it is |
 |---|---|
@@ -54,6 +54,7 @@ All seven are continuous, with no missing values. The notebook downloads the dat
    - the chance-corrected **ARI** and **NMI**, and how all these scores behave as k grows;
    - an analysis of the kernels the clustering placed with the "wrong" variety.
 6. **Interpretation and robustness.** I described each cluster by its centre in original units and in z-scores. I also re-ran the analysis with Ward hierarchical clustering, a Gaussian mixture model and 25 random seeds.
+7. **Benchmark and one rejected idea** *(extension)*. I compared the result with supervised models that do see the labels (10-fold cross-validation). I also tested clustering on decorrelated, "whitened" features, and explain below why I did not adopt it.
 
 ## 4. Results
 
@@ -125,9 +126,39 @@ The cluster centres almost coincide with the true variety means. For area, for e
 
 ![Purity, ARI and NMI as k grows](figures/07_purity_vs_k.png)
 
+### How close is this to the best possible?
+
+A score of 100% may simply not be reachable with these seven measurements. To find the realistic maximum, I trained two supervised models that **are** allowed to see the labels and scored them on kernels they had not seen (10-fold cross-validation):
+
+| Model | Share of kernels correct |
+|---|---|
+| Linear discriminant analysis (sees the labels) | **0.962** (±0.036 across folds) |
+| Logistic regression (sees the labels) | 0.933 (±0.053) |
+| **K-Means, k = 3 (never sees the labels)** | **0.919** |
+
+Even with the answers, the best model misses about 4% of kernels, because some kernels from different varieties measure almost the same. Clustering, without any labels, lands only about 4 percentage points below that. The supervised scores come from held-out kernels and K-Means is scored on all 210, but K-Means never used the labels to fit anything, so the comparison is fair.
+
+### An idea I tested and rejected
+
+Because five of the seven measurements mostly repeat size information, I tried clustering on **decorrelated ("whitened") principal components**. The first three columns below use no labels, so they are what I could have used to decide; the last two need the labels.
+
+| Feature space | Silhouette at k = 3 | Best k by silhouette | Lowest ARI over 10 seeds | Purity | ARI vs varieties |
+|---|---|---|---|---|---|
+| 7 scaled features (main analysis) | 0.401 | 2 | 1.000 | 0.919 | 0.773 |
+| 3 whitened components | 0.326 | 3 | 1.000 | 0.890 | 0.708 |
+| 4 whitened components | 0.270 | 3 | 0.931 | 0.957 | 0.876 |
+| 5 whitened components | 0.229 | 6 | 0.944 | 0.952 | 0.865 |
+| 7 whitened components | 0.164 | 5 | 0.583 | 0.957 | 0.876 |
+
+On paper this helps, with purity up to 0.957. I kept my original analysis for three reasons:
+
+- **Nothing without labels points to the good versions.** By the label-free columns, the most convincing whitened version has 3 components, and it scores *worse* (0.890). The better versions can only be recognised with the answer key.
+- **Some versions are unstable or point to another k.** With 7 components the result changes with the random start (ARI down to 0.583), and the silhouette prefers k = 5.
+- **Choosing by purity would mean tuning to the hidden labels.** The higher score would then no longer measure what clustering finds on its own.
+
 ## 5. Interpretation and limitations
 
-Without labels, K-Means recovered **most of the real variety structure**: about 92% of kernels, with an agreement far above chance. The groups have clear physical meanings. Rosa stands out mainly by its size, while Kama and Canadian differ in shape (compactness and asymmetry) as much as in size.
+Without labels, K-Means recovered **most of the real variety structure**: about 92% of kernels, with an agreement far above chance and close to the 96% that a supervised model reaches when it is given the labels. The groups have clear physical meanings. Rosa stands out mainly by its size, while Kama and Canadian differ in shape (compactness and asymmetry) as much as in size.
 
 The structure is *real but soft*. The varieties overlap, so about one kernel in twelve sits in the wrong group, and all of those errors involve Kama.
 
@@ -152,10 +183,11 @@ Several limitations matter:
 - **No single correct k.** The standard tools disagree, so I had to weigh evidence instead of reading an answer off one chart.
 - **The 2-D PCA plot is persuasive but incomplete.** It is tempting to over-read it.
 - **Purity flatters you.** It looks better with more clusters, which is why I added ARI and NMI.
+- **Resisting a better-looking score.** Whitened features raised purity to 0.957, but only in versions I could have picked by looking at the labels, so I kept my original analysis.
 
 **What I would improve with more time.**
 
-1. **Cluster on decorrelated features.** Five of the seven measurements mostly encode size. Whitened principal components, or one size measure plus compactness and asymmetry, might separate Kama from Canadian better.
+1. **Choose the features fairly.** Decorrelated features can score higher, but nothing without labels says which version to use. I would look for a label-free way to choose the feature space, or use a small labelled sample to choose it honestly.
 2. **Use soft assignments.** A Gaussian mixture gives each kernel a probability per group, so uncertain kernels can be flagged for manual inspection.
 3. **Test on new data.** Kernels from other harvests would show whether the three groups and their boundaries generalise.
 4. **Add model-based selection of k.** BIC for mixture models would be another check alongside the gap statistic.
@@ -171,7 +203,7 @@ The notebook runs top to bottom in about 20 seconds. Every random step uses `ran
 
 ## 8. Project website
 
-The repository includes a one-page summary of the project, `index.html`. To publish it, open **Settings → Pages**, choose **Deploy from a branch**, then select the `main` branch and the `/ (root)` folder. The page appears at `https://<your-username>.github.io/<repository-name>/`. The HTML version of the notebook is linked from that page.
+The repository includes a one-page summary of the project, `index.html`. To publish it, open **Settings → Pages**, choose **Deploy from a branch**, then select the `main` branch and the `/ (root)` folder. The page then appears at **https://marielandreou.github.io/seeds-clustering-portfolio/**. The HTML version of the notebook is linked from that page.
 
 ## 9. Repository structure
 
