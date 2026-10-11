@@ -1,6 +1,7 @@
 # How much structure can clustering find without labels?
 
 **Final project, Option 3: Machine Learning with Python (LEAP)**
+
 **Author:** Andreou Maria-Gavriela
 
 In this project I took 210 wheat kernels, hid which variety each one belonged to, and asked a simple question: if a clustering algorithm only sees seven measurements of each kernel, how much of the real grouping can it find on its own? I kept the true varieties locked away until the very end and used them only as an answer key.
