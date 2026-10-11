@@ -1,6 +1,6 @@
 # How much structure can clustering find without labels?
 
-**Final project, Option 3: Machine Learning with Python (LEAP)**
+**Final project, Option 3: Machine Learning with Python**
 
 **Author:** Andreou Maria-Gavriela
 
